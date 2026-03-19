@@ -329,11 +329,28 @@ public class Main {
         
         double d = 0.85;
         Map<String, Double> pr = new HashMap<>();
-        for (String node : words) {
-            pr.put(node, 1.0 / N);
-        }
+        Map<String, Double> initialWeight = new HashMap<>();
         
         Map<String, Map<String, Integer>> adj = currentGraph.getAdjacencyList();
+        double totalGraphWeight = 0;
+        
+        for (String node : words) {
+            double weight = 1.0; 
+            if (adj.containsKey(node)) {
+                for (int w : adj.get(node).values()) weight += w;
+            }
+            for (String other : words) {
+                if (adj.containsKey(other) && adj.get(other).containsKey(node)) {
+                    weight += adj.get(other).get(node);
+                }
+            }
+            initialWeight.put(node, weight);
+            totalGraphWeight += weight;
+        }
+
+        for (String node : words) {
+            pr.put(node, initialWeight.get(node) / totalGraphWeight);
+        }
         
         for (int iter = 0; iter < 100; iter++) {
             Map<String, Double> newPr = new HashMap<>();
@@ -346,7 +363,8 @@ public class Main {
             }
             
             for (String node : words) {
-                double pr_A = (1 - d) / N + d * (danglingSum / N);
+                double basePR = initialWeight.get(node) / totalGraphWeight;
+                double pr_A = (1 - d) * basePR + d * (danglingSum * basePR);
                 newPr.put(node, pr_A);
             }
             
