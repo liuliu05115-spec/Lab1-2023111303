@@ -45,8 +45,16 @@ public class Main {
                     }
                     break;
                 case "2":
-                    if (currentGraph != null) showDirectedGraph(currentGraph);
-                    else System.out.println("Please load a file first.");
+                    if (currentGraph != null) {
+                        showDirectedGraph(currentGraph);
+                        System.out.print("Do you want to save this graph as an image? (y/n): ");
+                        String saveImg = scanner.nextLine().trim();
+                        if (saveImg.equalsIgnoreCase("y")) {
+                            saveGraphAsImage(currentGraph, "graph_output.png");
+                        }
+                    } else {
+                        System.out.println("Please load a file first.");
+                    }
                     break;
                 case "3":
                     System.out.print("Enter word1: ");
@@ -102,6 +110,57 @@ public class Main {
             }
         }
         System.out.println("----------------------");
+    }
+    
+    public static void saveGraphAsImage(Graph G, String filename) {
+        System.out.println("Generating DOT file and requesting image from Graphviz API...");
+        StringBuilder dot = new StringBuilder("digraph G { ");
+        for (String src : G.getWords()) {
+            Map<String, Integer> edges = G.getAdjacencyList().get(src);
+            if (edges != null && !edges.isEmpty()) {
+                for (Map.Entry<String, Integer> entry : edges.entrySet()) {
+                    dot.append("    \"").append(src).append("\" -> \"").append(entry.getKey())
+                       .append("\" [label=\"").append(entry.getValue()).append("\"]; ");
+                }
+            } else {
+                dot.append("    \"").append(src).append("\"; ");
+            }
+        }
+        dot.append("} ");
+
+        System.out.println("=== DOT STRING ===");
+        System.out.println(dot.toString());
+        System.out.println("==================");
+
+        try {
+            String encodedDot = java.net.URLEncoder.encode(dot.toString(), "UTF-8");
+            java.net.URL url = new java.net.URL("https://quickchart.io/graphviz?format=png&graph=" + encodedDot);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+
+            int responseCode = conn.getResponseCode();
+            if (responseCode >= 400) {
+                java.io.InputStream errorStream = conn.getErrorStream();
+                if (errorStream != null) {
+                    try (java.util.Scanner s = new java.util.Scanner(errorStream).useDelimiter("\\\\A")) {
+                        System.out.println("API Error Response: " + (s.hasNext() ? s.next() : ""));
+                    }
+                }
+                throw new Exception("HTTP response code: " + responseCode);
+            }
+
+            try (java.io.InputStream in = conn.getInputStream();
+                 java.io.FileOutputStream out = new java.io.FileOutputStream(filename)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, bytesRead);
+                }
+                System.out.println("Graph saved successfully as " + filename + " in working directory.");
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to generate graph image: " + e.getMessage());
+        }
     }
     
     public static String queryBridgeWords(String word1, String word2) {
