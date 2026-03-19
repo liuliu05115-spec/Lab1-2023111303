@@ -76,7 +76,7 @@ public class Main {
                     System.out.println(calcShortestPath(startW, endW));
                     break;
                 case "6":
-                    System.out.println("Path: " + randomWalk());
+                    randomWalk(scanner);
                     break;
                 case "7":
                     System.out.print("Enter word for PageRank: ");
@@ -387,11 +387,14 @@ public class Main {
         return pr.get(word);
     }
     
-    public static String randomWalk() {
-        if (currentGraph == null) return "Graph not initialized";
+    public static void randomWalk(java.util.Scanner scanner) {
+        if (currentGraph == null) {
+            System.out.println("Graph not initialized");
+            return;
+        }
         Set<String> words = currentGraph.getWords();
         List<String> nodes = new ArrayList<>(words);
-        if (nodes.isEmpty()) return "";
+        if (nodes.isEmpty()) return;
         
         Random rand = new Random();
         String current = nodes.get(rand.nextInt(nodes.size()));
@@ -401,10 +404,12 @@ public class Main {
         Set<String> visitedEdges = new HashSet<>();
         
         Map<String, Map<String, Integer>> adj = currentGraph.getAdjacencyList();
+        System.out.println("Starting random walk at: " + current);
         
         while (true) {
             Map<String, Integer> edges = adj.get(current);
             if (edges == null || edges.isEmpty()) {
+                System.out.println("Stopped: Node '" + current + "' has no outgoing edges.");
                 break;
             }
             List<String> neighbors = new ArrayList<>(edges.keySet());
@@ -412,15 +417,25 @@ public class Main {
             
             String edgeStr = current + "->" + next;
             pathNodes.add(next);
+            System.out.print(" -> " + next);
             
             if (visitedEdges.contains(edgeStr)) {
+                System.out.println("\nStopped: Repeated edge '" + edgeStr + "'.");
                 break;
             }
             visitedEdges.add(edgeStr);
             current = next;
+            
+            System.out.println("\nPress Enter to continue walk, or type 'q' to stop: ");
+            String input = scanner.nextLine();
+            if (input.equalsIgnoreCase("q")) {
+                System.out.println("Walk stopped by user.");
+                break;
+            }
         }
         
         String result = String.join(" ", pathNodes);
+        System.out.println("Final Path: " + result);
         
         try (PrintWriter out = new PrintWriter("random_walk.txt")) {
             out.println(result);
@@ -428,7 +443,5 @@ public class Main {
         } catch (Exception e) {
             System.out.println("Failed to save random walk: " + e.getMessage());
         }
-        
-        return result;
     }
 }
