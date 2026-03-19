@@ -21,16 +21,16 @@ public class Main {
         }
         
         while (true) {
-            System.out.println("\nOptions:");
-            System.out.println("1. Load new text file");
-            System.out.println("2. Show directed graph");
-            System.out.println("3. Query bridge words");
-            System.out.println("4. Generate new text");
-            System.out.println("5. Calculate shortest path");
-            System.out.println("6. Random walk");
-            System.out.println("7. Calculate PageRank");
-            System.out.println("0. Exit");
-            System.out.print("Choose an option: ");
+            System.out.println("\n--- 菜单选项 ---");
+            System.out.println("1. 加载新的文本文件");
+            System.out.println("2. 展示有向图");
+            System.out.println("3. 查询桥接词 (Bridge words)");
+            System.out.println("4. 根据桥接词生成新文本");
+            System.out.println("5. 计算最短路径");
+            System.out.println("6. 随机游走");
+            System.out.println("7. 计算 PageRank");
+            System.out.println("0. 退出");
+            System.out.print("请选择一个选项: ");
             
             String choice = scanner.nextLine().trim();
             switch (choice) {
